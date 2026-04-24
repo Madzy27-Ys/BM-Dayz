@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Armes Black Market</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root{
+  --bg1:#05070f;
+  --bg2:#0b1430;
+  --card:rgba(255,255,255,0.06);
+  --stroke:rgba(255,255,255,0.10);
+  --text:#eaf1ff;
+  --muted:rgb(159, 178, 208);
+  --accent:#4da3ff;
+  --good:#2ee59d;
+  --danger:#ff4d4d;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter, sans-serif;
+  color:var(--text);
+  background: radial-gradient(circle at top, #152b5c, #05070f 60%);
+  min-height:100vh;
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:10;
+  padding:18px 26px;
+  backdrop-filter: blur(18px);
+  background: rgba(10,15,30,0.55);
+  border-bottom:1px solid var(--stroke);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+header h1{font-size:20px;margin:0;letter-spacing:1px}
+
+.wrap{
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:20px;
+  padding:22px;
+}
+
+.toolbar{
+  display:flex;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+input,select{
+  width:100%;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,0.05);
+  color:var(--text);
+  outline:none;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:16px;
+}
+
+.card{
+  position:relative;
+  padding:16px;
+  border-radius:18px;
+  background:var(--card);
+  border:1px solid var(--stroke);
+  backdrop-filter: blur(14px);
+  transition:0.25s;
+  overflow:hidden;
+}
+
+.card::before{
+  content:"";
+  position:absolute;
+  top:-40%;
+  right:-40%;
+  width:200px;
+  height:200px;
+  background: radial-gradient(circle, rgba(77,163,255,0.25), transparent 70%);
+  transform:rotate(25deg);
+}
+
+.card:hover{
+  transform:translateY(-6px);
+  border-color:rgba(77,163,255,0.4);
+}
+
+.card h3{margin:10px 0 6px;font-size:16px}
+
+.tag{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(77,163,255,0.15);
+  color:var(--accent);
+  border:1px solid rgba(77,163,255,0.3);
+}
+
+.prices{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:12px;
+}
+
+.btn{
+  padding:10px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.06);
+  color:var(--text);
+  font-weight:600;
+  font-size:12px;
+  cursor:pointer;
+}
+
+aside{
+  position:sticky;
+  top:90px;
+  padding:16px;
+  border-radius:18px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--stroke);
+  height:fit-content;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+.small{color:var(--muted);font-size:13px}
+
+.total{
+  font-size:22px;
+  font-weight:800;
+  color:var(--good);
+}
+
+.danger{
+  width:100%;
+  margin-top:12px;
+  padding:12px;
+  border-radius:14px;
+  border:none;
+  background:linear-gradient(135deg,#ff3b3b,#ff6b6b);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+
+@media(max-width:900px){
+  .wrap{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Black Market</h1>
+</header>
+
+<div class="wrap">
+
+<main>
+  <div class="toolbar">
+    <input id="search" placeholder="Rechercher une arme...">
+    <select id="cat"></select>
+  </div>
+
+  <div id="list" class="grid"></div>
+</main>
+
+<aside>
+  <h2>🛒 Total</h2>
+
+  <div id="cart"></div>
+
+  <p>Total : <span id="total" class="total">0 €</span></p>
+
+  <p class="small">Réduction appliquée :</p>
+
+  <div style="display:grid;gap:8px;margin-top:10px;">
+    <button class="btn" onclick="setDiscount(1)">Prix normal</button>
+    <button class="btn" onclick="setDiscount(0.70)">70% du prix</button>
+    <button class="btn" onclick="setDiscount(0.65)">65% du prix</button>
+  </div>
+
+  <button class="danger" onclick="resetCart()">Vider</button>
+</aside>
+
+</div>
+
+<script>
+
+const data=[
+{cat:'Fusils',name:'Cr-550 Savanna',prices:{Intact:5250,Use:3750,Abime:3000,TresAbime:2250,Prix_de_vente_de_base:7500}},
+{cat:'Snipers',name:'Karabiner 98k',prices:{Intact:5600,Use:4000,Abime:3200,TresAbime:2400,Prix_de_vente_de_base:8000}},
+{cat:'Snipers',name:'m70 Tundra',prices:{Intact:5250,Use:3750,Abime:3000,TresAbime:2250,Prix_de_vente_de_base:7500}},
+{cat:'Snipers',name:'Mosin 91/30',prices:{Intact:5600,Use:4000,Abime:3200,TresAbime:2400,Prix_de_vente_de_base:8000}},
+
+{cat:'DMR',name:'AR-308',prices:{Intact:19250,Use:13750,Abime:11000,TresAbime:8250,Prix_de_vente_de_base:27500}},
+{cat:'DMR',name:'ARS-10',prices:{Intact:18900,Use:13500,Abime:10800,TresAbime:8100,Prix_de_vente_de_base:27000}},
+
+{cat:'DMR',name:'H&K G28',prices:{Intact:15400,Use:11000,Abime:8800,TresAbime:6600,Prix_de_vente_de_base:22000}},
+{cat:'DMR',name:'HK417',prices:{Intact:14700,Use:10500,Abime:8400,TresAbime:6300,Prix_de_vente_de_base:21000}},
+
+{cat:'Fusils',name:'KPA88',prices:{Intact:12950,Use:9250,Abime:7400,TresAbime:5550,Prix_de_vente_de_base:18500}},
+{cat:'LMG',name:'M1918A2',prices:{Intact:13300,Use:9500,Abime:7600,TresAbime:5700,Prix_de_vente_de_base:19000}},
+
+{cat:'DMR',name:'MBR-S',prices:{Intact:14700,Use:10500,Abime:8400,TresAbime:6300,Prix_de_vente_de_base:21000}},
+{cat:'Fusils',name:'MCX Spear',prices:{Intact:36575,Use:26125,Abime:20900,TresAbime:15675,Prix_de_vente_de_base:52250}},
+
+{cat:'DMR',name:'Mk 20 Mod 0',prices:{Intact:15400,Use:11000,Abime:8800,TresAbime:6600,Prix_de_vente_de_base:22000}},
+{cat:'DMR',name:'Scar-H',prices:{Intact:15400,Use:11000,Abime:8800,TresAbime:6600,Prix_de_vente_de_base:22000}},
+
+{cat:'Shotguns',name:'AA-12',prices:{Intact:9975,Use:7125,Abime:5700,TresAbime:4275,Prix_de_vente_de_base:14250}},
+{cat:'LMG',name:'Gatling',prices:{Intact:8750,Use:6250,Abime:5000,TresAbime:3750,Prix_de_vente_de_base:12500}},
+{cat:'Shotguns',name:'Komrad',prices:{Intact:8050,Use:5750,Abime:4600,TresAbime:3450,Prix_de_vente_de_base:11500}},
+{cat:'Shotguns',name:'Vaiga',prices:{Intact:2625,Use:1875,Abime:1500,TresAbime:1125,Prix_de_vente_de_base:3750}},
+
+{cat:'Ghillie',name:'Cache-Col -Ghillie',prices:{Intact:35000,Use:25000,Abime:20000,TresAbime:15000,Prix_de_vente_de_base:50000}},
+{cat:'Ghillie',name:'Capuche Ghillie',prices:{Intact:35000,Use:25000,Abime:20000,TresAbime:15000,Prix_de_vente_de_base:50000}},
+{cat:'Ghillie',name:'Ghillie Wood sans feuille',prices:{Intact:1925,Use:1375,Abime:1100,TresAbime:825,Prix_de_vente_de_base:2750}},
+{cat:'Ghillie',name:'Ghillie Wood avec feuille',prices:{Intact:3325,Use:2375,Abime:1900,TresAbime:1425,Prix_de_vente_de_base:4750}},
+{cat:'Ghillie',name:'Haut Ghillie',prices:{Intact:35000,Use:25000,Abime:20000,TresAbime:15000,Prix_de_vente_de_base:50000}},
+{cat:'Ghillie',name:'Sniper Hood',prices:{Intact:1925,Use:1375,Abime:1100,TresAbime:825,Prix_de_vente_de_base:2750}},
+{cat:'Ghillie',name:'Tenue Ghuillie',prices:{Intact:45500,Use:32500,Abime:26000,TresAbime:19500,Prix_de_vente_de_base:65000}},
+
+{cat:'Lance-Grenade',name:'M79',prices:{Intact:70000,Use:50000,Abime:40000,TresAbime:30000,Prix_de_vente_de_base:100000}},
+{cat:'LMG',name:'ARES HMG',prices:{Intact:77000,Use:55000,Abime:44000,TresAbime:33000,Prix_de_vente_de_base:110000}},
+{cat:'LMG',name:'BN M240',prices:{Intact:84000,Use:60000,Abime:48000,TresAbime:36000,Prix_de_vente_de_base:120000}},
+{cat:'LMG',name:'FMX / M2Stinger',prices:{Intact:94500,Use:67500,Abime:54000,TresAbime:40500,Prix_de_vente_de_base:135000}},
+{cat:'LMG',name:'LMG',prices:{Intact:70000,Use:50000,Abime:40000,TresAbime:30000,Prix_de_vente_de_base:100000}},
+{cat:'LMG',name:'M249',prices:{Intact:71750,Use:51250,Abime:41000,TresAbime:30750,Prix_de_vente_de_base:102500}},
+{cat:'LMG',name:'M60',prices:{Intact:82250,Use:58750,Abime:47000,TresAbime:35250,Prix_de_vente_de_base:117500}},
+{cat:'LMG',name:'PKP',prices:{Intact:77000,Use:55000,Abime:44000,TresAbime:33000,Prix_de_vente_de_base:110000}},
+
+{cat:'Fusils',name:'Blaze',prices:{Intact:9100,Use:6500,Abime:5200,TresAbime:3900,Prix_de_vente_de_base:13000}},
+{cat:'DMR',name:'DKS501',prices:{Intact:15050,Use:10750,Abime:8600,TresAbime:6450,Prix_de_vente_de_base:21500}},
+{cat:'DMR',name:'DMR',prices:{Intact:14700,Use:10500,Abime:8400,TresAbime:6300,Prix_de_vente_de_base:21000}},
+{cat:'DMR',name:'K14',prices:{Intact:14700,Use:10500,Abime:8400,TresAbime:6300,Prix_de_vente_de_base:21000}},
+
+{cat:'Snipers',name:'Kar98S',prices:{Intact:15750,Use:11250,Abime:9000,TresAbime:6750,Prix_de_vente_de_base:22500}},
+{cat:'DMR',name:'M110',prices:{Intact:15750,Use:11250,Abime:9000,TresAbime:6750,Prix_de_vente_de_base:22500}},
+{cat:'DMR',name:'M14',prices:{Intact:14700,Use:10500,Abime:8400,TresAbime:6300,Prix_de_vente_de_base:21000}},
+{cat:'DMR',name:'M14 Survivor',prices:{Intact:17500,Use:12500,Abime:10000,TresAbime:7500,Prix_de_vente_de_base:25000}},
+{cat:'Fusils',name:'M900',prices:{Intact:16100,Use:11500,Abime:9200,TresAbime:6900,Prix_de_vente_de_base:23000}},
+{cat:'DMR',name:'MK14 EBR',prices:{Intact:14700,Use:10500,Abime:8400,TresAbime:6300,Prix_de_vente_de_base:21000}},
+
+{cat:'Snipers',name:'R700',prices:{Intact:12950,Use:9250,Abime:7400,TresAbime:5550,Prix_de_vente_de_base:18500}},
+{cat:'DMR',name:'RP-MR',prices:{Intact:16450,Use:11750,Abime:9400,TresAbime:7050,Prix_de_vente_de_base:23500}},
+{cat:'DMR',name:'RSASS',prices:{Intact:15050,Use:10750,Abime:8600,TresAbime:6450,Prix_de_vente_de_base:21500}},
+
+{cat:'Snipers',name:'SV-98',prices:{Intact:15750,Use:11250,Abime:9000,TresAbime:6750,Prix_de_vente_de_base:22500}},
+{cat:'DMR',name:'SVD-400',prices:{Intact:15750,Use:11250,Abime:9000,TresAbime:6750,Prix_de_vente_de_base:22500}},
+{cat:'DMR',name:'SVU',prices:{Intact:15750,Use:11250,Abime:9000,TresAbime:6750,Prix_de_vente_de_base:22500}},
+{cat:'DMR',name:'VSD',prices:{Intact:15750,Use:11250,Abime:9000,TresAbime:6750,Prix_de_vente_de_base:22500}},
+
+{cat:'Snipers',name:'AK50',prices:{Intact:93450,Use:66750,Abime:53400,TresAbime:40050,Prix_de_vente_de_base:133500}},
+
+{cat:'Snipers',name:'AR-15 .50 Beowulf',prices:{Intact:50050,Use:35750,Abime:28600,TresAbime:21450,Prix_de_vente_de_base:71500}},
+{cat:'Snipers',name:'AR50A',prices:{Intact:85750,Use:61250,Abime:49000,TresAbime:36750,Prix_de_vente_de_base:122500}},
+
+{cat:'Snipers',name:'Arbiter',prices:{Intact:131250,Use:93750,Abime:75000,TresAbime:56250,Prix_de_vente_de_base:187500}},
+{cat:'Snipers',name:'AS50',prices:{Intact:99750,Use:71250,Abime:57000,TresAbime:42750,Prix_de_vente_de_base:142500}},
+{cat:'Fusils',name:'ASh-12',prices:{Intact:64750,Use:46250,Abime:37000,TresAbime:27750,Prix_de_vente_de_base:92500}},
+
+{cat:'Snipers',name:'AWM',prices:{Intact:51100,Use:36500,Abime:29200,TresAbime:21900,Prix_de_vente_de_base:73000}},
+{cat:'Snipers',name:'AX-338',prices:{Intact:51800,Use:37000,Abime:29600,TresAbime:22200,Prix_de_vente_de_base:74000}},
+{cat:'Snipers',name:'AX-50',prices:{Intact:126000,Use:90000,Abime:72000,TresAbime:54000,Prix_de_vente_de_base:180000}},
+{cat:'Snipers',name:'Barrett XM500',prices:{Intact:99750,Use:71250,Abime:57000,TresAbime:42750,Prix_de_vente_de_base:142500}},
+
+{cat:'Snipers',name:'BTAPR',prices:{Intact:51800,Use:37000,Abime:29600,TresAbime:22200,Prix_de_vente_de_base:74000}},
+{cat:'Snipers',name:'Bushmaster BA50',prices:{Intact:88900,Use:63500,Abime:50800,TresAbime:38100,Prix_de_vente_de_base:127000}},
+
+{cat:'Snipers',name:'Candy_KVSK (12x7mm)',prices:{Intact:85050,Use:60750,Abime:48600,TresAbime:36450,Prix_de_vente_de_base:121500}},
+{cat:'Snipers',name:'CDX',prices:{Intact:86800,Use:62000,Abime:49600,TresAbime:37200,Prix_de_vente_de_base:124000}},
+{cat:'Snipers',name:'CheyTac M200 Intervention',prices:{Intact:81550,Use:58250,Abime:46600,TresAbime:34950,Prix_de_vente_de_base:116500}},
+
+{cat:'Snipers',name:'CSR-65',prices:{Intact:157500,Use:112500,Abime:90000,TresAbime:67500,Prix_de_vente_de_base:225000}},
+{cat:'Snipers',name:'DenelNTW',prices:{Intact:152250,Use:108750,Abime:87000,TresAbime:65250,Prix_de_vente_de_base:217500}},
+{cat:'Snipers',name:'DSR-1',prices:{Intact:51800,Use:37000,Abime:29600,TresAbime:22200,Prix_de_vente_de_base:74000}},
+{cat:'Snipers',name:'DVL-10 M1 Saboteur',prices:{Intact:56700,Use:40500,Abime:32400,TresAbime:24300,Prix_de_vente_de_base:81000}},
+
+{cat:'Snipers',name:'M10-SAKO',prices:{Intact:64750,Use:46250,Abime:37000,TresAbime:27750,Prix_de_vente_de_base:92500}},
+{cat:'Snipers',name:'M1000X',prices:{Intact:69300,Use:49500,Abime:39600,TresAbime:29700,Prix_de_vente_de_base:99000}},
+{cat:'DMR',name:'M110K-X',prices:{Intact:43750,Use:31250,Abime:25000,TresAbime:18750,Prix_de_vente_de_base:62500}},
+{cat:'Snipers',name:'M24A3',prices:{Intact:51800,Use:37000,Abime:29600,TresAbime:22200,Prix_de_vente_de_base:74000}},
+
+{cat:'Snipers',name:'M82A2',prices:{Intact:103250,Use:73750,Abime:59000,TresAbime:44250,Prix_de_vente_de_base:147500}},
+{cat:'Snipers',name:'M96 Meteor',prices:{Intact:89250,Use:63750,Abime:51000,TresAbime:38250,Prix_de_vente_de_base:127500}},
+{cat:'Snipers',name:'M98B',prices:{Intact:52150,Use:37250,Abime:29800,TresAbime:22350,Prix_de_vente_de_base:74500}},
+{cat:'DMR',name:'MAR-10',prices:{Intact:70700,Use:50500,Abime:40400,TresAbime:30300,Prix_de_vente_de_base:101000}},
+
+{cat:'DMR',name:'Mk 18 Mod 1 Mjolnir',prices:{Intact:51100,Use:36500,Abime:29200,TresAbime:21900,Prix_de_vente_de_base:73000}},
+{cat:'Snipers',name:'MSR',prices:{Intact:56000,Use:40000,Abime:32000,TresAbime:24000,Prix_de_vente_de_base:80000}},
+
+{cat:'Snipers',name:'OMEN Watchman',prices:{Intact:44800,Use:32000,Abime:25600,TresAbime:19200,Prix_de_vente_de_base:64000}},
+{cat:'Snipers',name:'SR-100 Alligator',prices:{Intact:157500,Use:112500,Abime:90000,TresAbime:67500,Prix_de_vente_de_base:225000}},
+{cat:'Snipers',name:'SRS A2',prices:{Intact:56000,Use:40000,Abime:32000,TresAbime:24000,Prix_de_vente_de_base:80000}},
+{cat:'Snipers',name:'SSZ',prices:{Intact:85050,Use:60750,Abime:48600,TresAbime:36450,Prix_de_vente_de_base:121500}},
+
+{cat:'Snipers',name:'Tac-21',prices:{Intact:85750,Use:61250,Abime:49000,TresAbime:36750,Prix_de_vente_de_base:122500}},
+{cat:'Snipers',name:'ULR',prices:{Intact:84700,Use:60500,Abime:48400,TresAbime:36300,Prix_de_vente_de_base:121000}},
+{cat:'Snipers',name:'VKS / VSSK',prices:{Intact:42700,Use:30500,Abime:24400,TresAbime:18300,Prix_de_vente_de_base:61000}},
+{cat:'Snipers',name:'KSVK',prices:{Intact:85050,Use:60750,Abime:48600,TresAbime:36450,Prix_de_vente_de_base:121500}},
+
+];;
+
+let cart=[];
+let discount=1;
+
+const list=document.getElementById("list");
+const cat=document.getElementById("cat");
+const search=document.getElementById("search");
+const cartDiv=document.getElementById("cart");
+const total=document.getElementById("total");
+
+const cats=['Toutes',...new Set(data.map(x=>x.cat))];
+cat.innerHTML=cats.map(c=>`<option>${c}</option>`).join('');
+
+function money(n){
+  return n.toLocaleString('fr-FR')+' €';
+}
+
+function render(){
+  const q=search.value.toLowerCase();
+  const c=cat.value;
+
+  list.innerHTML=data
+  .filter(i=>(c==='Toutes'||i.cat===c)&&i.name.toLowerCase().includes(q))
+  .map(i=>`
+    <div class='card'>
+      <span class='tag'>${i.cat}</span>
+      <h3>${i.name}</h3>
+      <div class='prices'>
+        ${Object.entries(i.prices).map(([k,v])=>`
+          <button class="btn" onclick="addItem('${i.name}','${k}',${v})">
+            ${k}<br>${money(v)}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function addItem(name,state,price){
+  cart.push({name,state,price});
+  drawCart();
+}
+
+function setDiscount(v){
+  discount=v;
+  drawCart();
+}
+
+function drawCart(){
+  const base=cart.reduce((a,b)=>a+b.price,0);
+  const final=Math.round(base*discount);
+
+  cartDiv.innerHTML=cart.map((x,i)=>`
+    <div class="row">
+      <div>
+        <b>${x.name}</b>
+        <div class="small">${x.state}</div>
+      </div>
+      <div>${money(x.price)} <button onclick="del(${i})">❌</button></div>
+    </div>
+  `).join('')||'<p class="small">Vide</p>';
+
+  total.textContent=money(final);
+}
+
+function del(i){
+  cart.splice(i,1);
+  drawCart();
+}
+
+function resetCart(){
+  cart=[];
+  drawCart();
+}
+
+search.oninput=render;
+cat.onchange=render;
+
+render();
+drawCart();
+
+</script>
+
+</body>
+</html>
