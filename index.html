@@ -182,27 +182,24 @@ aside{
 <div class="wrap">
 
 <main>
-  <div class="toolbar">
-    <input id="search" placeholder="Rechercher une arme...">
-    <select id="cat"></select>
-  </div>
+<div class="toolbar">
+  <input id="search" placeholder="Rechercher une arme...">
+</div>
 
   <div id="list" class="grid"></div>
 </main>
 
 <aside>
-  <h2>🛒 Total</h2>
+  <h2>Total</h2>
 
   <div id="cart"></div>
 
   <p>Total : <span id="total" class="total">0 €</span></p>
 
-  <p class="small">Réduction appliquée :</p>
 
   <div style="display:grid;gap:8px;margin-top:10px;">
     <button class="btn" onclick="setDiscount(1)">Prix normal</button>
     <button class="btn" onclick="setDiscount(0.70)">70% du prix</button>
-    <button class="btn" onclick="setDiscount(0.65)">65% du prix</button>
   </div>
 
   <button class="danger" onclick="resetCart()">Vider</button>
@@ -212,7 +209,7 @@ aside{
 
 <script>
 
-const data=[
+let data =[
 {cat:'Fusils',name:'Cr-550 Savanna',prices:{Intact:5250,Use:3750,Abime:3000,TresAbime:2250,Prix_de_vente_de_base:7500}},
 {cat:'Snipers',name:'Karabiner 98k',prices:{Intact:5600,Use:4000,Abime:3200,TresAbime:2400,Prix_de_vente_de_base:8000}},
 {cat:'Snipers',name:'m70 Tundra',prices:{Intact:5250,Use:3750,Abime:3000,TresAbime:2250,Prix_de_vente_de_base:7500}},
@@ -325,19 +322,31 @@ const data=[
 {cat:'Snipers',name:'VKS / VSSK',prices:{Intact:42700,Use:30500,Abime:24400,TresAbime:18300,Prix_de_vente_de_base:61000}},
 {cat:'Snipers',name:'KSVK',prices:{Intact:85050,Use:60750,Abime:48600,TresAbime:36450,Prix_de_vente_de_base:121500}},
 
-];;
+];
+
+data = data.map(item => {
+  const { Intact, Prix_de_vente_de_base, ...rest } = item.prices;
+
+  return {
+    ...item,
+    prices: {
+      Intact: Prix_de_vente_de_base,
+      ...rest
+    }
+  };
+});
+
+
+
 
 let cart=[];
 let discount=1;
 
 const list=document.getElementById("list");
-const cat=document.getElementById("cat");
 const search=document.getElementById("search");
 const cartDiv=document.getElementById("cart");
 const total=document.getElementById("total");
 
-const cats=['Toutes',...new Set(data.map(x=>x.cat))];
-cat.innerHTML=cats.map(c=>`<option>${c}</option>`).join('');
 
 function money(n){
   return n.toLocaleString('fr-FR')+' €';
@@ -345,13 +354,11 @@ function money(n){
 
 function render(){
   const q=search.value.toLowerCase();
-  const c=cat.value;
 
   list.innerHTML=data
-  .filter(i=>(c==='Toutes'||i.cat===c)&&i.name.toLowerCase().includes(q))
+  .filter(i=>i.name.toLowerCase().includes(q))
   .map(i=>`
     <div class='card'>
-      <span class='tag'>${i.cat}</span>
       <h3>${i.name}</h3>
       <div class='prices'>
         ${Object.entries(i.prices).map(([k,v])=>`
@@ -402,7 +409,6 @@ function resetCart(){
 }
 
 search.oninput=render;
-cat.onchange=render;
 
 render();
 drawCart();
