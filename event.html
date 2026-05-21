@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Armes Black Market</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root{
+  --bg1:#05070f;
+  --bg2:#0b1430;
+  --card:rgba(255,255,255,0.06);
+  --stroke:rgba(255,255,255,0.10);
+  --text:#eaf1ff;
+  --muted:rgb(159, 178, 208);
+  --accent:#4da3ff;
+  --good:#2ee59d;
+  --danger:#ff4d4d;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter, sans-serif;
+  color:var(--text);
+  background: radial-gradient(circle at top, #152b5c, #05070f 60%);
+  min-height:100vh;
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:10;
+  padding:18px 26px;
+  backdrop-filter: blur(18px);
+  background: rgba(10,15,30,0.55);
+  border-bottom:1px solid var(--stroke);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+header h1{font-size:20px;margin:0;letter-spacing:1px}
+
+.wrap{
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:20px;
+  padding:22px;
+}
+
+.toolbar{
+  display:flex;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.nav{
+  display:flex;
+  gap:10px;
+}
+
+.nav-btn{
+  text-decoration:none;
+  padding:10px 16px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.06);
+  color:var(--text);
+  font-weight:600;
+  transition:0.2s;
+}
+
+.nav-btn:hover{
+  background:rgba(255,255,255,0.12);
+}
+
+.nav-btn.active{
+  background:rgba(77,163,255,0.20);
+  border-color:rgba(77,163,255,0.4);
+}
+
+input,select{
+  width:100%;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,0.05);
+  color:var(--text);
+  outline:none;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:16px;
+}
+
+.card{
+  position:relative;
+  padding:16px;
+  border-radius:18px;
+  background:var(--card);
+  border:1px solid var(--stroke);
+  backdrop-filter: blur(14px);
+  transition:0.25s;
+  overflow:hidden;
+}
+
+.card::before{
+  content:"";
+  position:absolute;
+  top:-40%;
+  right:-40%;
+  width:200px;
+  height:200px;
+  background: radial-gradient(circle, rgba(77,163,255,0.25), transparent 70%);
+  transform:rotate(25deg);
+}
+
+.card:hover{
+  transform:translateY(-6px);
+  border-color:rgba(77,163,255,0.4);
+}
+
+.card h3{margin:10px 0 6px;font-size:16px}
+
+.tag{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(77,163,255,0.15);
+  color:var(--accent);
+  border:1px solid rgba(77,163,255,0.3);
+}
+
+.prices{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:12px;
+}
+
+.price-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:15px;
+  font-weight:700;
+  min-height:55px;
+}
+
+.btn{
+  padding:10px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.06);
+  color:var(--text);
+  font-weight:600;
+  font-size:12px;
+  cursor:pointer;
+}
+
+aside{
+  position:sticky;
+  top:90px;
+  padding:16px;
+  border-radius:18px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--stroke);
+  height:fit-content;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+.small{color:var(--muted);font-size:13px}
+
+.total{
+  font-size:22px;
+  font-weight:800;
+  color:var(--good);
+}
+
+.danger{
+  width:100%;
+  margin-top:12px;
+  padding:12px;
+  border-radius:14px;
+  border:none;
+  background:linear-gradient(135deg,#ff3b3b,#ff6b6b);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+
+@media(max-width:900px){
+  .wrap{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+  <nav class="nav">
+    <a href="index.html" class="nav-btn active">Black Market</a>
+    <a href="event.html" class="nav-btn">Event</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+<main>
+
+  <div id="list" class="grid"></div>
+</main>
+
+<aside>
+  <h2>Total</h2>
+
+  <div id="cart"></div>
+
+  <p>Total : <span id="total" class="total">0 €</span></p>
+
+
+  <div style="display:grid;gap:8px;margin-top:10px;">
+    <button class="btn" onclick="setDiscount(1)">Prix normal</button>
+    <button class="btn" onclick="setDiscount(0.80)">80% du prix</button>
+  </div>
+
+  <button class="danger" onclick="resetCart()">Vider</button>
+</aside>
+
+</div>
+
+<script>
+
+let data = [
+  {cat:'Fusils',name:'Aqua FPS Teddy',prices:{Intact:20000}},
+  {cat:'Snipers',name:'Carte mémoire rétro',prices:{Intact:20000}},
+  {cat:'Snipers',name:'Cartouche GameBoy',prices:{Intact:20000}},
+  {cat:'Snipers',name:'Cat Statue',prices:{Intact:25000}},
+  {cat:'Snipers',name:'Clé USB',prices:{Intact:10000}},
+  {cat:'Snipers',name:'Collier Croix Diamant',prices:{Intact:5000}},
+  {cat:'Snipers',name:'Disque Dur (Bleu & Blanc)',prices:{Intact:15000}},
+  {cat:'Snipers',name:'Disque Dur (Noir)',prices:{Intact:20000}},
+  {cat:'Snipers',name:'Disquette 1999',prices:{Intact:20000}},
+  {cat:'Snipers',name:'Dossier Intel',prices:{Intact:20000}},
+  {cat:'Snipers',name:'GP Coin',prices:{Intact:7000}},
+  {cat:'Snipers',name:'Jouet rétro',prices:{Intact:7500}},
+  {cat:'Snipers',name:'KEK Tape',prices:{Intact:5000}},
+  {cat:'Snipers',name:'LEDX',prices:{Intact:50000}},
+  {cat:'Snipers',name:'Mobile Phone',prices:{Intact:5000}},
+  {cat:'Snipers',name:'Montre de Poche',prices:{Intact:12000}},
+  {cat:'Snipers',name:'Moonshine',prices:{Intact:15000}},
+  {cat:'Snipers',name:'Ours en Peluche',prices:{Intact:2000}},
+  {cat:'Snipers',name:'Pokemon Card',prices:{Intact:20000}},
+  {cat:'Snipers',name:'Polaroid Photo ',prices:{Intact:2000}},
+  {cat:'Snipers',name:'RAM',prices:{Intact:10000}},
+  {cat:'Snipers',name:'Smartphone',prices:{Intact:5000}},
+  {cat:'Snipers',name:'Tetriz',prices:{Intact:10000}},
+  {cat:'Snipers',name:'VPX Flash Module',prices:{Intact:15000}},
+  {cat:'Snipers',name:'Masque Aztek',prices:{Intact:5500}},
+  {cat:'Snipers',name:'Carte Aztek',prices:{Intact:500}},
+
+];
+
+
+
+
+
+let cart=[];
+let discount=1;
+
+const list=document.getElementById("list");
+const cartDiv=document.getElementById("cart");
+const total=document.getElementById("total");
+
+
+function money(n){
+  return n.toLocaleString('fr-FR')+' €';
+}
+
+function render(){
+
+  list.innerHTML = data
+  .map(i => `
+    <div class='card'>
+      <h3>${i.name}</h3>
+
+      <div class='prices'>
+        ${Object.entries(i.prices).map(([k,v]) => `
+          <button class="btn price-btn" onclick="addItem('${i.name}','${k}',${v})">
+            ${money(v)}
+          </button>
+        `).join('')}
+      </div>
+
+    </div>
+  `).join('');
+}
+
+function addItem(name,state,price){
+  cart.push({name,state,price});
+  drawCart();
+}
+
+function setDiscount(v){
+  discount=v;
+  drawCart();
+}
+
+function drawCart(){
+  const base=cart.reduce((a,b)=>a+b.price,0);
+  const final=Math.round(base*discount);
+
+  cartDiv.innerHTML=cart.map((x,i)=>`
+    <div class="row">
+      <div>
+        <b>${x.name}</b>
+        <div class="small">${x.state}</div>
+      </div>
+      <div>${money(x.price)} <button onclick="del(${i})">❌</button></div>
+    </div>
+  `).join('')||'<p class="small">Vide</p>';
+
+  total.textContent=money(final);
+}
+
+function del(i){
+  cart.splice(i,1);
+  drawCart();
+}
+
+function resetCart(){
+  cart=[];
+  drawCart();
+}
+
+
+render();
+drawCart();
+
+</script>
+
+</body>
+</html>
