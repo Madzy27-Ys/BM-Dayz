@@ -190,6 +190,16 @@ aside{
   color:var(--good);
 }
 
+.qty-input{
+  width:60px;
+  margin-left:6px;
+  padding:4px 6px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.06);
+  color:white;
+}
+
 .danger{
   width:100%;
   margin-top:12px;
@@ -311,7 +321,20 @@ function render(){
 }
 
 function addItem(name,state,price){
-  cart.push({name,state,price});
+
+  const found = cart.find(x => x.name === name);
+
+  if(found){
+    found.qty++;
+  }else{
+    cart.push({
+      name,
+      state,
+      price,
+      qty:1
+    });
+  }
+
   drawCart();
 }
 
@@ -321,20 +344,44 @@ function setDiscount(v){
 }
 
 function drawCart(){
-  const base=cart.reduce((a,b)=>a+b.price,0);
-  const final=Math.round(base*discount);
+  const base = cart.reduce((a,b)=>a + (b.price * b.qty),0);
+  const final = Math.round(base*discount);
 
-  cartDiv.innerHTML=cart.map((x,i)=>`
+  cartDiv.innerHTML = cart.map((x,i)=>`
     <div class="row">
       <div>
         <b>${x.name}</b>
-        <div class="small">${x.state}</div>
-      </div>
-      <div>${money(x.price)} <button onclick="del(${i})">❌</button></div>
-    </div>
-  `).join('')||'<p class="small">Vide</p>';
 
-  total.textContent=money(final);
+        <div class="small">
+          ${money(x.price)} x 
+          <input 
+            type="number" 
+            min="1" 
+            value="${x.qty}" 
+            onchange="changeQty(${i}, this.value)"
+            class="qty-input"
+          >
+        </div>
+      </div>
+
+      <div>
+        ${money(x.price * x.qty)}
+        <button onclick="del(${i})">❌</button>
+      </div>
+    </div>
+  `).join('') || '<p class="small">Vide</p>';
+
+  total.textContent = money(final);
+}
+
+function changeQty(i,val){
+  cart[i].qty = Number(val);
+
+  if(cart[i].qty < 1 || isNaN(cart[i].qty)){
+    cart[i].qty = 1;
+  }
+
+  drawCart();
 }
 
 function del(i){
